@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ทำรายการยืมอุปกรณ์กีฬา</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+    <header class="navbar">
+        <h1>📝 แบบฟอร์มยืมอุปกรณ์กีฬา</h1>
+        <button onclick="window.location.href='./index.html'" class="btn-secondary">กลับหน้าสต็อก</button>
+    </header>
+
+    <main class="page-center-layout">
+        <section class="card shadow-lg">
+            <form id="borrowForm" onsubmit="handleBorrowSubmit(event)">
+                
+                <h3 class="section-title">1. กรอกข้อมูลผู้ยืม (กรอกให้ครบทุกช่อง)</h3>
+                <div class="form-grid-3">
+                    <div class="form-group">
+                        <label>รหัสนักศึกษา *</label>
+                        <input type="text" id="studentId" placeholder="เช่น 650123456" required>
+                    </div>
+                    <div class="form-group">
+                        <label>ชื่อ-นามสกุล *</label>
+                        <input type="text" id="fullName" placeholder="นาย/นางสาว..." required>
+                    </div>
+                    <div class="form-group">
+                        <label>สาขาวิชา *</label>
+                        <input type="text" id="department" placeholder="เช่น เทคโนโลยีสารสนเทศ" required>
+                    </div>
+                    <div class="form-group">
+                        <label>ห้อง/ชั้นปี *</label>
+                        <input type="text" id="room" placeholder="เช่น ห้อง 402 / ปี 2" required>
+                    </div>
+                    <div class="form-group">
+                        <label>วันที่และเวลายืม *</label>
+                        <input type="datetime-local" id="borrowTime" required>
+                    </div>
+                    <div class="form-group">
+                        <label>วันที่และเวลาคืน *</label>
+                        <input type="datetime-local" id="returnTime" required>
+                    </div>
+                </div>
+
+                <h3 class="section-title" style="margin-top: 25px;">2. เลือกอุปกรณ์และระบุจำนวนที่ต้องการยืม</h3>
+                <div id="equipmentSelectArea" class="equipment-select-list"></div>
+
+                <div class="action-footer">
+                    <button type="submit" class="btn-success btn-large">ยืนยันการยืมอุปกรณ์</button>
+                </div>
+            </form>
+        </section>
+    </main>
+
+    <script src="script.js"></script>
+    <script>
+        checkAuth();
+        renderBorrowSelection();
+    </script>
+</body>
+</html>

@@ -1,0 +1,388 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ระบบจัดการยืม-คืนอุปกรณ์กีฬา</title>
+    <link href="https://fonts.googleapis.com/css2?family=Kanit:wght@300;400;500;600&display=swap" rel="stylesheet">
+    <style>
+        * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Kanit', sans-serif; }
+        body { background: linear-gradient(135deg, #eef2f3 0%, #8e9eab 100%); min-height: 100vh; display: flex; flex-direction: column; color: #2c3e50; }
+        
+        /* Layout & Cards */
+        .container { flex: 1; display: flex; justify-content: center; align-items: center; padding: 30px 20px; }
+        .card { background: #ffffff; padding: 35px; border-radius: 20px; box-shadow: 0 15px 35px rgba(0,0,0,0.1); width: 100%; max-width: 850px; }
+        .auth-card { max-width: 420px; }
+        
+        /* Typography & Header */
+        .title { color: #007bf0; text-align: center; margin-bottom: 20px; font-size: 1.6rem; font-weight: 600; }
+        .navbar { background: #007bf0; color: white; padding: 15px 30px; display: flex; justify-content: space-between; align-items: center; box-shadow: 0 4px 15px rgba(0,123,240,0.2); }
+        .user-info { display: flex; align-items: center; gap: 15px; }
+
+        /* Form elements */
+        .form-group { margin-bottom: 18px; }
+        .form-group label { display: block; margin-bottom: 6px; font-weight: 500; font-size: 0.9rem; }
+        .form-group input { width: 100%; padding: 12px; border: 1.5px solid #e2e8f0; border-radius: 10px; font-size: 0.95rem; outline: none; }
+        .form-group input:focus { border-color: #007bf0; }
+        .form-grid-3 { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 15px; }
+
+        /* Buttons */
+        .btn { border: none; padding: 12px 20px; border-radius: 10px; font-weight: 600; cursor: pointer; transition: 0.2s; }
+        .btn-primary { background: #007bf0; color: white; width: 100%; }
+        .btn-success { background: #28a745; color: white; width: 100%; }
+        .btn-logout { background: #ff4d4f; color: white; padding: 6px 14px; font-size: 0.85rem; }
+        .btn-secondary { background: white; color: #007bf0; border: 1.5px solid #007bf0; }
+        .btn-edit { background: #ffc107; color: #212529; padding: 6px 12px; font-size: 0.85rem; }
+
+        /* AI Notification Widget */
+        .ai-widget { background: linear-gradient(135deg, #43e97b 0%, #38f9d7 100%); color: #0f5132; padding: 18px; border-radius: 12px; margin-bottom: 25px; }
+        .ai-title { font-weight: 600; margin-bottom: 8px; }
+        .ai-alert-item { background: rgba(255,255,255,0.7); padding: 8px 12px; border-radius: 6px; margin-top: 6px; font-size: 0.9rem; }
+
+        /* Table */
+        .table-responsive { overflow-x: auto; border-radius: 10px; border: 1px solid #edf2f7; margin-top: 15px; }
+        table { width: 100%; border-collapse: collapse; text-align: left; }
+        th, td { padding: 14px 18px; border-bottom: 1px solid #edf2f7; }
+        th { background-color: #f7fafc; color: #007bf0; }
+        .text-center { text-align: center; }
+        .badge { padding: 4px 12px; border-radius: 20px; font-size: 0.8rem; font-weight: 600; }
+        .badge-success { background: #e6f4ea; color: #137333; }
+        .badge-danger { background: #fce8e6; color: #c5221f; }
+
+        /* Equipment List inside Form */
+        .equip-list { background: #f8fafc; padding: 15px; border-radius: 10px; display: flex; flex-direction: column; gap: 10px; margin-top: 15px; }
+        .equip-item { display: flex; justify-content: space-between; align-items: center; background: white; padding: 12px 15px; border-radius: 8px; border: 1px solid #e2e8f0; }
+        .equip-item input[type="number"] { width: 70px; padding: 6px; text-align: center; border: 1px solid #cbd5e1; border-radius: 6px; }
+
+        .toggle-link { text-align: center; margin-top: 15px; font-size: 0.88rem; color: #666; }
+        .toggle-link a { color: #007bf0; font-weight: 600; cursor: pointer; }
+        .error-alert { background: #ffe6e6; color: #d93025; padding: 10px; border-radius: 8px; margin-bottom: 15px; font-size: 0.88rem; text-align: center; }
+    </style>
+</head>
+<body>
+
+    <!-- Header Navigation -->
+    <header class="navbar" id="navbar" style="display: none;">
+        <h2>⚽ ระบบจัดการอุปกรณ์กีฬา</h2>
+        <div class="user-info">
+            <span id="user-display">👤 ผู้ใช้งาน</span>
+            <button onclick="logout()" class="btn btn-logout">ออกจากระบบ</button>
+        </div>
+    </header>
+
+    <div class="container">
+
+        <!-- 1. LOGIN / REGISTER VIEW -->
+        <div id="auth-view" class="card auth-card">
+            <!-- Form Login -->
+            <div id="login-box">
+                <h2 class="title">⚽ ลงชื่อเข้าใช้งาน</h2>
+                <div id="login-error" class="error-alert" style="display: none;">⚠️ ชื่อผู้ใช้หรือรหัสผ่านไม่ถูกต้อง!</div>
+                <form onsubmit="handleLogin(event)">
+                    <div class="form-group">
+                        <label>ชื่อผู้ใช้งาน (Username)</label>
+                        <input type="text" id="login-user" placeholder="Admin: admin / User: user" required>
+                    </div>
+                    <div class="form-group">
+                        <label>รหัสผ่าน (Password)</label>
+                        <input type="password" id="login-pass" placeholder="Admin: admin123 / User: 1234" required>
+                    </div>
+                    <button type="submit" class="btn btn-primary">เข้าสู่ระบบ</button>
+                </form>
+                <div class="toggle-link">ยังไม่มีบัญชี? <a onclick="toggleAuth('register')">สมัครสมาชิก</a></div>
+            </div>
+
+            <!-- Form Register -->
+            <div id="register-box" style="display: none;">
+                <h2 class="title">📝 สมัครสมาชิก</h2>
+                <form onsubmit="handleRegister(event)">
+                    <div class="form-group">
+                        <label>ชื่อ-นามสกุล</label>
+                        <input type="text" id="reg-fullname" placeholder="เช่น นายสมชาย ใจดี" required>
+                    </div>
+                    <div class="form-group">
+                        <label>ชื่อผู้ใช้งาน (Username)</label>
+                        <input type="text" id="reg-user" placeholder="ตั้งชื่อสำหรับลงชื่อเข้าใช้" required>
+                    </div>
+                    <div class="form-group">
+                        <label>รหัสผ่าน (Password)</label>
+                        <input type="password" id="reg-pass" placeholder="ตั้งรหัสผ่าน" required>
+                    </div>
+                    <button type="submit" class="btn btn-success">ยืนยันลงทะเบียน</button>
+                </form>
+                <div class="toggle-link">มีบัญชีอยู่แล้ว? <a onclick="toggleAuth('login')">กลับไปเข้าสู่ระบบ</a></div>
+            </div>
+        </div>
+
+        <!-- 2. STOCK DASHBOARD VIEW -->
+        <div id="dashboard-view" class="card" style="display: none;">
+            <div class="ai-widget">
+                <div class="ai-title">🤖 AI Smart Notification (แจ้งเตือนสถานะสต็อก)</div>
+                <div id="ai-alert-box">กำลังประมวลผล...</div>
+            </div>
+
+            <h3 class="title" style="text-align: left; margin-bottom: 10px;">📦 รายการอุปกรณ์กีฬาในคลัง</h3>
+            <div class="table-responsive">
+                <table>
+                    <thead>
+                        <tr>
+                            <th class="text-center">รหัส</th>
+                            <th>ชื่ออุปกรณ์กีฬา</th>
+                            <th class="text-center">สถานะ</th>
+                            <th class="text-center">จำนวนคงเหลือ</th>
+                            <th class="text-center" id="admin-col-header" style="display: none;">จัดการ (Admin)</th>
+                        </tr>
+                    </thead>
+                    <tbody id="stock-tbody"></tbody>
+                </table>
+            </div>
+
+            <div style="margin-top: 25px; text-align: center;">
+                <button onclick="switchView('borrow')" class="btn btn-primary" style="width: auto; padding: 14px 30px;">
+                    🚀 ทำรายการยืมอุปกรณ์กีฬา
+                </button>
+            </div>
+        </div>
+
+        <!-- 3. BORROW FORM VIEW -->
+        <div id="borrow-view" class="card" style="display: none;">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+                <h3 class="title" style="margin: 0;">📝 แบบฟอร์มยืมอุปกรณ์กีฬา</h3>
+                <button onclick="switchView('dashboard')" class="btn btn-secondary">← กลับหน้าคลังอุปกรณ์</button>
+            </div>
+
+            <form onsubmit="handleBorrowSubmit(event)">
+                <div class="form-grid-3">
+                    <div class="form-group">
+                        <label>รหัสนักศึกษา *</label>
+                        <input type="text" id="b-studentId" placeholder="เช่น 650123456" required>
+                    </div>
+                    <div class="form-group">
+                        <label>ชื่อ-นามสกุล *</label>
+                        <input type="text" id="b-fullName" placeholder="นาย/นางสาว..." required>
+                    </div>
+                    <div class="form-group">
+                        <label>สาขาวิชา *</label>
+                        <input type="text" id="b-dept" placeholder="เช่น เทคโนโลยีสารสนเทศ" required>
+                    </div>
+                    <div class="form-group">
+                        <label>ห้อง/ชั้นปี *</label>
+                        <input type="text" id="b-room" placeholder="เช่น ห้อง 402 / ปี 2" required>
+                    </div>
+                    <div class="form-group">
+                        <label>วันที่และเวลายืม *</label>
+                        <input type="datetime-local" id="b-timeBorrow" required>
+                    </div>
+                    <div class="form-group">
+                        <label>วันที่และเวลาคืน *</label>
+                        <input type="datetime-local" id="b-timeReturn" required>
+                    </div>
+                </div>
+
+                <h4 style="margin-top: 15px; color: #007bf0;">เลือกอุปกรณ์และระบุจำนวนที่ต้องการยืม:</h4>
+                <div id="borrow-items-list" class="equip-list"></div>
+
+                <div style="margin-top: 25px; text-align: center;">
+                    <button type="submit" class="btn btn-success" style="width: auto; padding: 14px 40px;">ยืนยันการยืมอุปกรณ์</button>
+                </div>
+            </form>
+        </div>
+
+    </div>
+
+    <script>
+        // --- DATA INITIALIZATION (DATABASE SIMULATION) ---
+        const initialUsers = [
+            { fullname: 'ผู้ดูแลระบบ (Admin)', user: 'admin', pass: 'admin123', role: 'admin' },
+            { fullname: 'นายสมชาย ใจดี', user: 'user', pass: '1234', role: 'user' }
+        ];
+
+        const initialEquipments = [
+            { id: "SP01", name: "ลูกฟุตบอล", available: 10 },
+            { id: "SP02", name: "ลูกบาสเกตบอล", available: 2 },
+            { id: "SP03", name: "ไม้แบดมินตัน", available: 12 },
+            { id: "SP04", name: "ลูกวอลเลย์บอล", available: 0 },
+            { id: "SP05", name: "ลูกปิงปอง", available: 30 }
+        ];
+
+        function getUsers() {
+            return JSON.parse(localStorage.getItem('app_users')) || initialUsers;
+        }
+        function getEquipments() {
+            return JSON.parse(localStorage.getItem('app_equipments')) || initialEquipments;
+        }
+        function saveEquipments(data) {
+            localStorage.setItem('app_equipments', JSON.stringify(data));
+        }
+
+        // --- AUTHENTICATION & VIEW SYSTEM ---
+        function toggleAuth(type) {
+            document.getElementById('login-error').style.display = 'none';
+            document.getElementById('login-box').style.display = type === 'login' ? 'block' : 'none';
+            document.getElementById('register-box').style.display = type === 'register' ? 'block' : 'none';
+        }
+
+        function handleRegister(e) {
+            e.preventDefault();
+            const fullname = document.getElementById('reg-fullname').value;
+            const user = document.getElementById('reg-user').value;
+            const pass = document.getElementById('reg-pass').value;
+
+            let users = getUsers();
+            if (users.find(u => u.user === user)) {
+                alert('❌ ชื่อผู้ใช้งานนี้มีผู้ใช้ไปแล้ว!');
+                return;
+            }
+
+            users.push({ fullname, user, pass, role: 'user' });
+            localStorage.setItem('app_users', JSON.stringify(users));
+            alert('✅ สมัครสมาชิกสำเร็จ! กรุณาเข้าสู่ระบบ');
+            toggleAuth('login');
+        }
+
+        function handleLogin(e) {
+            e.preventDefault();
+            const user = document.getElementById('login-user').value;
+            const pass = document.getElementById('login-pass').value;
+            
+            const users = getUsers();
+            const found = users.find(u => u.user === user && u.pass === pass);
+
+            if (found) {
+                localStorage.setItem('session_user', JSON.stringify(found));
+                document.getElementById('login-error').style.display = 'none';
+                initDashboard();
+            } else {
+                document.getElementById('login-error').style.display = 'block';
+            }
+        }
+
+        function logout() {
+            localStorage.removeItem('session_user');
+            switchView('auth');
+        }
+
+        function switchView(viewName) {
+            document.getElementById('auth-view').style.display = viewName === 'auth' ? 'block' : 'none';
+            document.getElementById('dashboard-view').style.display = viewName === 'dashboard' ? 'block' : 'none';
+            document.getElementById('borrow-view').style.display = viewName === 'borrow' ? 'block' : 'none';
+            document.getElementById('navbar').style.display = viewName === 'auth' ? 'none' : 'flex';
+
+            if (viewName === 'dashboard') renderDashboard();
+            if (viewName === 'borrow') renderBorrowForm();
+        }
+
+        function initDashboard() {
+            const currentUser = JSON.parse(localStorage.getItem('session_user'));
+            if (!currentUser) {
+                switchView('auth');
+                return;
+            }
+            document.getElementById('user-display').innerText = `${currentUser.role === 'admin' ? '⚙️ [ADMIN]' : '👤'} ${currentUser.fullname}`;
+            switchView('dashboard');
+        }
+
+        // --- DASHBOARD & AI LOGIC ---
+        function renderDashboard() {
+            const currentUser = JSON.parse(localStorage.getItem('session_user'));
+            const isAdmin = currentUser && currentUser.role === 'admin';
+            const equipments = getEquipments();
+
+            // Render AI Alerts
+            const outOfStock = equipments.filter(e => e.available === 0);
+            const lowStock = equipments.filter(e => e.available > 0 && e.available <= 3);
+            let aiMessages = [];
+
+            if (outOfStock.length > 0) aiMessages.push(`🚨 **AI Warning:** อุปกรณ์หมดสต็อก ได้แก่ [${outOfStock.map(e => e.name).join(', ')}]`);
+            if (lowStock.length > 0) aiMessages.push(`⚠️ **AI Notice:** อุปกรณ์ใกล้อย่างวิกฤต [${lowStock.map(e => `${e.name} (${e.available})`).join(', ')}]`);
+            if (aiMessages.length === 0) aiMessages.push(`✨ **AI Status:** อุปกรณ์กีฬาพร้อมใช้งาน สต็อกอยู่ในเกณฑ์ปกติทุกรายการ`);
+
+            document.getElementById('ai-alert-box').innerHTML = aiMessages.map(m => `<div class="ai-alert-item">${m}</div>`).join('');
+
+            // Render Table
+            document.getElementById('admin-col-header').style.display = isAdmin ? 'table-cell' : 'none';
+            const tbody = document.getElementById('stock-tbody');
+            tbody.innerHTML = '';
+
+            equipments.forEach(item => {
+                const isAvail = item.available > 0;
+                const tr = document.createElement('tr');
+                tr.innerHTML = `
+                    <td class="text-center"><strong>${item.id}</strong></td>
+                    <td>${item.name}</td>
+                    <td class="text-center"><span class="badge ${isAvail ? 'badge-success' : 'badge-danger'}">${isAvail ? 'พร้อมยืม' : 'ของหมด'}</span></td>
+                    <td class="text-center"><strong>${item.available}</strong> ชิ้น</td>
+                    ${isAdmin ? `<td class="text-center"><button class="btn btn-edit" onclick="editStock('${item.id}', ${item.available})">✏️ แก้ไข</button></td>` : ''}
+                `;
+                tbody.appendChild(tr);
+            });
+        }
+
+        function editStock(id, currentQty) {
+            const newQty = prompt(`ระบุจำนวนสต็อกใหม่สำหรับ (${id}):`, currentQty);
+            if (newQty === null || newQty.trim() === '') return;
+
+            let equipments = getEquipments();
+            const item = equipments.find(e => e.id === id);
+            if (item) {
+                item.available = parseInt(newQty) || 0;
+                saveEquipments(equipments);
+                renderDashboard();
+            }
+        }
+
+        // --- BORROW FORM LOGIC ---
+        function renderBorrowForm() {
+            const equipments = getEquipments();
+            const container = document.getElementById('borrow-items-list');
+            container.innerHTML = '';
+
+            equipments.forEach(item => {
+                const isAvail = item.available > 0;
+                const div = document.createElement('div');
+                div.className = 'equip-item';
+                div.innerHTML = `
+                    <label style="display:flex; align-items:center; gap:10px; cursor:pointer;">
+                        <input type="checkbox" class="equip-chk" value="${item.id}" ${!isAvail ? 'disabled' : ''}>
+                        <span><strong>${item.name}</strong> (คงเหลือ ${item.available} ชิ้น)</span>
+                    </label>
+                    <div>
+                        จำนวน: <input type="number" class="equip-qty" id="b_qty_${item.id}" min="1" max="${item.available}" value="1" ${!isAvail ? 'disabled' : ''}> ชิ้น
+                    </div>
+                `;
+                container.appendChild(div);
+            });
+        }
+
+        function handleBorrowSubmit(e) {
+            e.preventDefault();
+            const chks = document.querySelectorAll('.equip-chk:checked');
+            if (chks.length === 0) {
+                alert('❌ กรุณาเลือกอุปกรณ์อย่างน้อย 1 รายการ');
+                return;
+            }
+
+            let equipments = getEquipments();
+            let borrowedList = [];
+
+            chks.forEach(chk => {
+                const id = chk.value;
+                const qty = parseInt(document.getElementById('b_qty_' + id).value);
+                const equip = equipments.find(e => e.id === id);
+                if (equip && equip.available >= qty) {
+                    equip.available -= qty;
+                    borrowedList.push(`${equip.name} (${qty} ชิ้น)`);
+                }
+            });
+
+            saveEquipments(equipments);
+            const studentName = document.getElementById('b-fullName').value;
+            alert(`✅ ทำรายการยืมสำเร็จ!\n\nผู้ยืม: ${studentName}\nรายการ: ${borrowedList.join(', ')}`);
+            switchView('dashboard');
+        }
+
+        // Auto Start
+        initDashboard();
+    </script>
+</body>
+</html>
