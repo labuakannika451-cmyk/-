@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>เข้าสู่ระบบ - ระบบยืมอุปกรณ์กีฬา</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body class="page-center-layout">
+
+    <div class="auth-card">
+        <div id="login-box">
+            <h2 class="title">⚽ ลงชื่อเข้าใช้งาน</h2>
+            <div id="error-msg" class="error-alert" style="display: none;">
+                ⚠️ ชื่อผู้ใช้หรือรหัสผ่านไม่ถูกต้อง กรุณาลองใหม่อีกครั้ง
+            </div>
+            <form onsubmit="handleLogin(event)">
+                <div class="form-group">
+                    <label>ชื่อผู้ใช้งาน / รหัสนักศึกษา</label>
+                    <input type="text" id="login-user" placeholder="กรอกชื่อผู้ใช้ (Admin: admin / User: user)" required>
+                </div>
+                <div class="form-group">
+                    <label>รหัสผ่าน</label>
+                    <input type="password" id="login-pass" placeholder="กรอกรหัสผ่าน (Admin: admin123 / User: 1234)" required>
+                </div>
+                <button type="submit" class="btn-primary">เข้าสู่ระบบ</button>
+            </form>
+            <div class="toggle-link">
+                ยังไม่เคยใช้งาน? <a onclick="toggleForm('register')">สมัครสมาชิกที่นี่</a>
+            </div>
+        </div>
+
+        <div id="register-box" style="display: none;">
+            <h2 class="title">📝 สมัครสมาชิก</h2>
+            <form onsubmit="handleRegister(event)">
+                <div class="form-group">
+                    <label>ชื่อ-นามสกุล</label>
+                    <input type="text" id="reg-fullname" placeholder="เช่น นายสมชาย ใจดี" required>
+                </div>
+                <div class="form-group">
+                    <label>ชื่อผู้ใช้งาน (Username)</label>
+                    <input type="text" id="reg-user" placeholder="ตั้งชื่อสำหรับล็อกอิน" required>
+                </div>
+                <div class="form-group">
+                    <label>รหัสผ่าน (Password)</label>
+                    <input type="password" id="reg-pass" placeholder="ตั้งรหัสผ่าน" required>
+                </div>
+                <button type="submit" class="btn-success">ยืนยันลงทะเบียน</button>
+            </form>
+            <div class="toggle-link">
+                มีบัญชีอยู่แล้ว? <a onclick="toggleForm('login')">กลับหน้าเข้าสู่ระบบ</a>
+            </div>
+        </div>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+</html>
